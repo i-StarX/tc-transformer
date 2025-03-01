@@ -1,0 +1,26 @@
+# Use a lightweight Python base image
+FROM python:3.11-slim
+
+# Prevent Python from writing .pyc files
+ENV PYTHONUNBUFFERED=1
+
+# Set a working directory (arbitrary name)
+WORKDIR /app
+
+# Copy the requirements file first (for caching)
+COPY requirements.txt .
+
+# Create and activate a venv, then install dependencies
+RUN python -m venv /app/venv \
+    && . /app/venv/bin/activate \
+    && pip install --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
+
+# Copy all other files (including main.py, .env, etc.) into /app
+COPY . .
+
+# Expose the default FastAPI port
+EXPOSE 8000
+
+# Run uvicorn, pointing to main.py (the FastAPI "app" object is in main:app)
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
